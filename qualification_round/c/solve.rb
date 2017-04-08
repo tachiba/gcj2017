@@ -7,17 +7,9 @@ def solve(index, input)
   "Case ##{index}: #{max} #{min}"
 end
 
-b = Benchmark.measure do
-  $stdin.each_line.with_index do |line, index|
-    next if index == 0 || line.nil? || line.size == 0
+$stdin.each_line.with_index do |line, index|
+  next if index == 0 || line.nil? || line.size == 0
 
-    b1 = Benchmark.measure do
-      puts line
-      puts solve(index, line)
-    end
-
-    puts b1
-  end
+  # puts line
+  puts solve(index, line)
 end
-
-puts b

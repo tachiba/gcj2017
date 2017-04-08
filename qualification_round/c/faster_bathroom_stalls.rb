@@ -7,12 +7,11 @@ class FasterBathroomStalls
     @initial_people_count = people_count.to_i
 
     @spaces_count = @initial_stalls_count
-    @stalls = [@spaces_count]
+    @stalls = [[@spaces_count, 1]]
   end
 
   def call
-    return 0, 0 if initial_people_count == initial_stalls_count ||
-      initial_people_count > (initial_stalls_count * 2) / 3
+    return 0, 0 if initial_people_count == initial_stalls_count
 
     _occupy_all
 
@@ -22,28 +21,38 @@ class FasterBathroomStalls
   private
 
   def _occupy_all
-    index = 0
+    stalls_index = 0
+    calculated_index = 0
 
-    @initial_people_count.times do
-      s1, s2 = _occupy(@stalls[index])
+    loop do
+      # puts "1: #{@stalls}"
+
+      value = @stalls[stalls_index].first
+      count = @stalls[stalls_index].last
+
+      s1, s2 = _occupy(value)
 
       @last_max = s1
       @last_min = s2
 
-      @stalls[index] = s1
-      @stalls.insert(index + 1, s2)
-
-      # puts @stalls.to_s
+      @stalls[stalls_index] = [s1, count]
+      @stalls.insert(stalls_index + 1, [s2, count])
 
       if @last_min == 0 && @last_max == 0
         return
-      elsif @stalls.size > index + 2
-        index += 2
+      elsif @stalls.size > stalls_index + 2
+        stalls_index += 2
       else
-        index = 0
+        stalls_index = 0
 
         _finish_current_depth
       end
+
+      # puts "2: #{@stalls}"
+
+      calculated_index += count
+
+      return if calculated_index >= initial_people_count
     end
   end
 
@@ -53,19 +62,27 @@ class FasterBathroomStalls
   end
 
   def _finish_current_depth
-    @stalls.sort! { |x, y| y <=> x }
+    # puts '#_finish_current_depth'
+    # puts "1.5: #{@stalls}"
 
-    new_stalls = []
-    indexes_same_values = 0
-    prev_value = nil
-    @stalls.each do |v|
-      if prev_value == v
-        indexes_same_values += 1
+    saved_count = 0
+    @stalls = @stalls.sort{ |x, y| y.first <=> x.first }.map.each_with_index { |a, current_index|
+      current_value = a.first
+      current_count = a.last
+      next_value = @stalls[current_index + 1].first if @stalls.size > current_index + 1
+
+      if next_value && current_value == next_value
+        saved_count += current_count
+
+        # puts "#{current_value} #{saved_count}"
+
+        nil
       else
-        new_stalls << [prev_value, indexes_same_values]
+        next_count = saved_count + current_count
+        saved_count = 0
 
-        prev_value = v
+        [current_value, next_count]
       end
-    end
+    }.compact
   end
 end
