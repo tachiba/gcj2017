@@ -1,5 +1,5 @@
 class BathroomStalls
-  attr_reader :stalls_count, :people_count, :last_min, :last_max
+  attr_reader :stalls_count, :people_count, :last_min, :last_max, :almost_full
 
   def initialize(stalls_count, people_count)
     @stalls_count = stalls_count.to_i
@@ -10,7 +10,9 @@ class BathroomStalls
   end
 
   def call
-    @people_count.times { _occupy }
+    @people_count.times do
+      _occupy unless almost_full
+    end
 
     return @last_min, @last_max
   end
@@ -43,6 +45,10 @@ class BathroomStalls
     @stalls[candidate_index] = true
     @last_min = candidate_min
     @last_max = candidate_max
+
+    if @last_min == 0 && @last_max == 0
+      @almost_full = true
+    end
   end
 
   def _left_space_from(index)
